@@ -3,4 +3,5 @@ dist
 .next
 .env
 *.log
+*.tsbuildinfo
 _overlay
