@@ -1,0 +1,9 @@
+{
+  "name": "wyxan-small-web",
+  "private": true,
+  "scripts": {
+    "install:all": "npm --prefix backend install && npm --prefix frontend install",
+    "dev:api": "npm --prefix backend run start:dev",
+    "dev:web": "npm --prefix frontend run dev"
+  }
+}
