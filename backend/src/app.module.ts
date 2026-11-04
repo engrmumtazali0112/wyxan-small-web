@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { User, UserSchema } from './users/user.schema';
-import { Site, SiteSchema } from './sites/site.schema';
-import { Visit, VisitSchema } from './visits/visit.schema';
+import { AppController } from './app.controller.js';
+import { AppService } from './app.service.js';
+import { User, UserSchema } from './users/user.schema.js';
+import { Site, SiteSchema } from './sites/site.schema.js';
+import { Visit, VisitSchema } from './visits/visit.schema.js';
 
 @Module({
   imports: [
