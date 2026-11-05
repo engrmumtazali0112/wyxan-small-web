@@ -11,7 +11,6 @@ const ALLOWED_TAGS = [
   "figure", "figcaption", "details", "summary",
 ];
 
-// Inline style survives only as look-only declarations: never position, size or url().
 const COLOR = /^(#[0-9a-f]{3,8}|rgb\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*\)|[a-z]{3,20})$/i;
 const STYLE_RULES: Record<string, RegExp> = {
   color: COLOR,
@@ -37,10 +36,13 @@ function cleanStyle(value: string): string {
 
 let hooked = false;
 
-/** Browser-only (DOMPurify needs a DOM). Only ever called from client components after a fetch. */
 export function sanitizeClient(html: string): string {
+  // DOMPurify requires a browser environment
+  if (typeof window === "undefined") return html;
+
   if (!hooked) {
     DOMPurify.addHook("afterSanitizeAttributes", (node) => {
+      if (!(node instanceof Element)) return;
       const style = node.getAttribute("style");
       if (style === null) return;
       const kept = cleanStyle(style);
@@ -49,10 +51,11 @@ export function sanitizeClient(html: string): string {
     });
     hooked = true;
   }
+
   return DOMPurify.sanitize(html, {
     ALLOWED_TAGS,
     ALLOWED_ATTR: ["href", "title", "lang", "style"],
-    ALLOWED_URI_REGEXP: ADDRESS_RE, // an href is a bare address or it is removed
+    ALLOWED_URI_REGEXP: ADDRESS_RE,
     ALLOW_DATA_ATTR: false,
     ALLOW_ARIA_ATTR: false,
   });

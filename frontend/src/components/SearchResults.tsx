@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useState, type RefObject } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { searchSites, type SearchHit } from "@/lib/api";
 import { useBrowser, type Entry } from "@/store/browser";
 
@@ -11,11 +11,10 @@ type State =
 
 interface Props {
   entry: Entry;
-  scroller: RefObject<HTMLDivElement | null>;
-  onSettled: (key: string) => void;
+  onSettled: (key: string, scrollY: number) => void;
 }
 
-export default function SearchResults({ entry, scroller, onSettled }: Props) {
+export default function SearchResults({ entry, onSettled }: Props) {
   const navigate = useBrowser((s) => s.navigate);
   const [state, setState] = useState<State>({ status: "loading" });
   const [initialScroll] = useState(entry.scrollY);
@@ -33,10 +32,8 @@ export default function SearchResults({ entry, scroller, onSettled }: Props) {
 
   const settled = state.status !== "loading";
   useLayoutEffect(() => {
-    if (!settled) return;
-    if (scroller.current) scroller.current.scrollTop = initialScroll;
-    onSettled(entry.key);
-  }, [settled, scroller, initialScroll, onSettled, entry.key]);
+    if (settled) onSettled(entry.key, initialScroll);
+  }, [settled, onSettled, entry.key, initialScroll]);
 
   return (
     <div className="page">

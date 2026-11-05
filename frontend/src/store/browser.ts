@@ -6,7 +6,7 @@ export interface Entry {
   key: string; // unique per entry; changing it forces the viewer to reload
   kind: "page" | "search";
   value: string; // an address, or a search query
-  scrollY: number; // where the reader was when they left this entry
+  scrollY: number; // where the reader was when they left this entry (always a number)
 }
 
 interface Session {
@@ -17,20 +17,27 @@ interface Session {
 const EMPTY: Session = { entries: [], index: -1 };
 
 /* ── scroll: the viewport registers a reader; the store calls it on every exit ── */
-let readScroll: () => number = () => 0;
-export function registerScrollReader(fn: () => number) {
+// null = "that entry never finished rendering": keep whatever position was saved before.
+type ScrollReader = (entryKey: string) => number | null;
+let readScroll: ScrollReader = () => null;
+
+export function registerScrollReader(fn: ScrollReader) {
   readScroll = fn;
   return () => {
-    if (readScroll === fn) readScroll = () => 0;
+    if (readScroll === fn) readScroll = () => null;
   };
 }
 
 const newKey = () =>
   `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 
-/** Stamp the current scroll onto the entry being left. */
+/** Stamp the current scroll onto the entry being left (only if it was really shown). */
 function leave(s: Session): Entry[] {
-  return s.entries.map((e, i) => (i === s.index ? { ...e, scrollY: readScroll() } : e));
+  return s.entries.map((e, i) => {
+    if (i !== s.index) return e;
+    const y = readScroll(e.key);
+    return y === null ? e : { ...e, scrollY: y };
+  });
 }
 
 /** A fresh navigation: everything ahead of the current entry is dropped. */

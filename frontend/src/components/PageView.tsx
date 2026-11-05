@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useState,
-  type MouseEvent,
-  type RefObject,
-} from "react";
+import { useEffect, useLayoutEffect, useMemo, useState, type MouseEvent } from "react";
 import { getSite, NowhereError, type Site } from "@/lib/api";
 import { ADDRESS_RE } from "@/lib/address";
 import { sanitizeClient } from "@/lib/sanitize";
@@ -21,12 +14,11 @@ type State =
 
 interface Props {
   entry: Entry;
-  scroller: RefObject<HTMLDivElement | null>;
-  onSettled: (key: string) => void;
+  onSettled: (key: string, scrollY: number) => void;
 }
 
 // Mounted with key={entry.key}: every history entry gets a fresh instance, so state resets for free.
-export default function PageView({ entry, scroller, onSettled }: Props) {
+export default function PageView({ entry, onSettled }: Props) {
   const navigate = useBrowser((s) => s.navigate);
   const [state, setState] = useState<State>({ status: "loading" });
   const [initialScroll] = useState(entry.scrollY); // where the reader was when they left this entry
@@ -51,13 +43,11 @@ export default function PageView({ entry, scroller, onSettled }: Props) {
     [state],
   );
 
-  // Restore scroll only once real content is in the DOM; before that there is nothing to scroll.
+  // Tell the viewport once real content is in the DOM, so it can restore the scroll position.
   const settled = state.status !== "loading";
   useLayoutEffect(() => {
-    if (!settled) return;
-    if (scroller.current) scroller.current.scrollTop = initialScroll;
-    onSettled(entry.key);
-  }, [settled, scroller, initialScroll, onSettled, entry.key]);
+    if (settled) onSettled(entry.key, initialScroll);
+  }, [settled, onSettled, entry.key, initialScroll]);
 
   function onLinkClick(e: MouseEvent<HTMLDivElement>) {
     const a = (e.target as Element).closest("a");
@@ -69,7 +59,9 @@ export default function PageView({ entry, scroller, onSettled }: Props) {
     if (href && ADDRESS_RE.test(href)) navigate(href, "link");
   }
 
-  if (state.status === "loading") return <div className="page"><p className="muted">Loading…</p></div>;
+  if (state.status === "loading") {
+    return <div className="page"><p className="muted">Loading…</p></div>;
+  }
 
   if (state.status === "nowhere") {
     return (
