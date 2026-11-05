@@ -23,6 +23,10 @@ export class Site {
 
   @Prop({ type: Types.ObjectId, ref: 'User', required: true, index: true })
   author: Types.ObjectId;
+
+  // Maintained by `timestamps: true`; declared (without @Prop) only so TypeScript sees them.
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export const SiteSchema = SchemaFactory.createForClass(Site);
