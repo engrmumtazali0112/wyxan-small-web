@@ -150,3 +150,49 @@ body {
   .history { display: none; }
   .picker span, .address__label { display: none; }
 }
+
+/* ── pages ── */
+.muted { color: var(--muted); }
+.bad { color: #a12a12; }
+.page code { font-family: var(--mono); font-size: 0.85em; background: var(--chrome-hi); padding: 0 4px; }
+.byline { font: 12px var(--mono); color: var(--muted); margin: 0 0 1.5rem; padding-bottom: 0.6rem; border-bottom: 1px dotted var(--chrome-lo); }
+.page--nowhere h1 { color: var(--accent); font-style: italic; }
+
+/* The box holding a stranger's markup: it cannot paint or lay out outside itself. */
+.site { contain: layout paint style; isolation: isolate; overflow-wrap: anywhere; }
+.site table { border-collapse: collapse; margin: 1em 0; }
+.site th, .site td { border: 1px solid var(--chrome-lo); padding: 4px 8px; }
+.site pre { overflow-x: auto; background: var(--chrome-hi); padding: 0.8em; }
+.site dt { font-weight: 700; margin-top: 0.8em; }
+
+/* ── search ── */
+.searchbar { display: flex; gap: 6px; }
+.searchbar input {
+  width: 190px; font: inherit; padding: 5px 8px; background: #fffdf6;
+  border: 2px solid; border-color: var(--chrome-lo) var(--chrome-hi) var(--chrome-hi) var(--chrome-lo);
+}
+.hits { list-style: none; padding: 0 !important; }
+.hit { display: block; width: 100%; text-align: left; font: inherit; padding: 0.7rem 0; background: none; border: 0; border-bottom: 1px dotted var(--chrome-lo); cursor: pointer; }
+.hit:hover .hit__title { text-decoration: underline; }
+.hit__title { display: block; color: var(--link); font-size: 1.15rem; }
+.hit__addr { display: block; font: 12px var(--mono); color: var(--accent); }
+.hit__snippet { display: block; color: var(--ink); font-size: 0.95rem; margin-top: 0.2rem; }
+
+/* ── publish dialog ── */
+.modal { position: fixed; inset: 0; background: rgba(30, 25, 15, 0.55); display: grid; place-items: center; padding: 16px; z-index: 10; }
+.dialog {
+  width: min(640px, 100%); max-height: 100%; overflow: auto; display: flex; flex-direction: column; gap: 12px;
+  background: var(--chrome); padding: 16px;
+  border: 2px solid; border-color: var(--chrome-hi) var(--chrome-lo) var(--chrome-lo) var(--chrome-hi);
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.35);
+}
+.dialog h2 { font-size: 15px; }
+.dialog label { display: flex; flex-direction: column; gap: 4px; }
+.dialog input, .dialog textarea {
+  font: inherit; padding: 6px 8px; background: #fffdf6; color: var(--ink);
+  border: 2px solid; border-color: var(--chrome-lo) var(--chrome-hi) var(--chrome-hi) var(--chrome-lo);
+}
+.dialog textarea { resize: vertical; }
+.dialog input[aria-invalid="true"] { border-color: #a12a12; }
+.dialog__actions { display: flex; justify-content: flex-end; gap: 8px; }
+.btn--primary { background: var(--accent); color: #fbf3e2; font-weight: 700; }

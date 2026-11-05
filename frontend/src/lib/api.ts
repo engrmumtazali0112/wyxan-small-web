@@ -10,6 +10,25 @@ export interface User {
   displayName: string;
 }
 
+export interface Site {
+  address: string;
+  title: string;
+  html: string;
+  author: User;
+  updatedAt?: string;
+}
+
+export interface PublishResult extends Site {
+  replaced: boolean;
+}
+
+export interface SearchHit {
+  address: string;
+  title: string;
+  snippet: string;
+  score: number;
+}
+
 export interface Visit {
   id: string;
   address: string;
@@ -20,9 +39,32 @@ export interface Visit {
 }
 
 export class ApiError extends Error {
-  constructor(public status: number, message: string) {
+  status: number;
+  constructor(status: number, message: string) {
     super(message);
+    this.status = status;
   }
+}
+
+/** "Nowhere": a normal outcome of browsing, not a failure. */
+export class NowhereError extends Error {
+  address: string;
+  constructor(address: string) {
+    super("No such address");
+    this.address = address;
+  }
+}
+
+async function failure(res: Response): Promise<ApiError> {
+  let message = res.statusText || `HTTP ${res.status}`;
+  try {
+    const body = await res.json();
+    const m = body?.message;
+    message = Array.isArray(m) ? m.join("; ") : (m ?? message);
+  } catch {
+    /* body was not JSON */
+  }
+  return new ApiError(res.status, message);
 }
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
@@ -33,11 +75,31 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
     headers: { ...headers, ...init.headers },
     cache: "no-store",
   });
-  if (!res.ok) throw new ApiError(res.status, await res.text());
+  if (!res.ok) throw await failure(res);
   return (await res.json()) as T;
 }
 
 export const getUsers = () => request<User[]>("/users");
+
+export async function getSite(address: string, signal?: AbortSignal): Promise<Site> {
+  const res = await fetch(`${API_URL}/sites/${encodeURIComponent(address)}`, {
+    signal,
+    cache: "no-store",
+  });
+  if (res.status === 404) throw new NowhereError(address);
+  if (!res.ok) throw await failure(res);
+  return (await res.json()) as Site;
+}
+
+export const searchSites = (q: string, signal?: AbortSignal) =>
+  request<SearchHit[]>(`/search?q=${encodeURIComponent(q)}`, { signal });
+
+export const publishSite = (input: {
+  address: string;
+  title: string;
+  html: string;
+  authorId: string;
+}) => request<PublishResult>("/sites", { method: "POST", body: JSON.stringify(input) });
 
 export const getHistory = (userId: string, signal?: AbortSignal) =>
   request<Visit[]>(`/visits/${encodeURIComponent(userId)}?limit=200`, { signal });

@@ -10,12 +10,14 @@ import {
   useCurrent,
 } from "@/store/browser";
 import HistorySidebar from "./HistorySidebar";
+import PublishDialog from "./PublishDialog";
 import Viewport from "./Viewport";
 
 export default function BrowserShell() {
   const [ready, setReady] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [publishing, setPublishing] = useState(false);
 
   const userId = useBrowser((s) => s.userId);
   const selectUser = useBrowser((s) => s.selectUser);
@@ -62,6 +64,11 @@ export default function BrowserShell() {
         </button>
 
         <AddressBar disabled={!userId} />
+        <SearchBar disabled={!userId} />
+
+        <button className="btn" onClick={() => setPublishing(true)} disabled={!userId}>
+          Publish
+        </button>
 
         <label className="picker">
           <span>Browsing as</span>
@@ -85,9 +92,11 @@ export default function BrowserShell() {
         <HistorySidebar />
       </div>
 
-      <footer className="statusbar">
-        {who ? `@${who.handle}` : "nobody is browsing"}
-      </footer>
+      <footer className="statusbar">{who ? `@${who.handle}` : "nobody is browsing"}</footer>
+
+      {publishing && who && (
+        <PublishDialog userId={who.id} authorName={who.displayName} onClose={() => setPublishing(false)} />
+      )}
     </div>
   );
 }
@@ -97,7 +106,6 @@ function AddressBar({ disabled }: { disabled: boolean }) {
   const navigate = useBrowser((s) => s.navigate);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
-
   const shown = displayAddress(current);
 
   return (
@@ -129,6 +137,43 @@ function AddressBar({ disabled }: { disabled: boolean }) {
       />
       <button className="btn" type="submit" disabled={disabled}>
         Go
+      </button>
+    </form>
+  );
+}
+
+function SearchBar({ disabled }: { disabled: boolean }) {
+  const current = useCurrent();
+  const search = useBrowser((s) => s.search);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState("");
+  const shown = current?.kind === "search" ? current.value : "";
+
+  return (
+    <form
+      className="searchbar"
+      role="search"
+      onSubmit={(e) => {
+        e.preventDefault();
+        search(draft);
+        setEditing(false);
+        (document.activeElement as HTMLElement | null)?.blur();
+      }}
+    >
+      <input
+        type="search"
+        placeholder="search every page"
+        disabled={disabled}
+        value={editing ? draft : shown}
+        onFocus={() => {
+          setDraft(shown);
+          setEditing(true);
+        }}
+        onBlur={() => setEditing(false)}
+        onChange={(e) => setDraft(e.target.value)}
+      />
+      <button className="btn" type="submit" disabled={disabled}>
+        Search
       </button>
     </form>
   );
